@@ -1,0 +1,33 @@
+# ---- SGO IGNORE CONFIG ----
+
+# Credenciais e segurança
+/includes/db_connect.php
+/includes/auth_check.php
+
+# Uploads
+/uploads/
+/uploads/*
+
+# Vendor (Composer)
+vendor/
+composer.lock
+
+# Arquivos de log
+*.log
+
+# Configurações locais
+.env
+*.env
+
+# Sistema do VSCode
+.vscode/
+
+# Sistema Windows
+Thumbs.db
+desktop.ini
+
+# Backups
+*.bak
+*.old
+*.zip
+*.rar
