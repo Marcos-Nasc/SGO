@@ -3,31 +3,40 @@
 # Credenciais e segurança
 /includes/db_connect.php
 /includes/auth_check.php
+.env
+*.env
 
-# Uploads
+# Uploads e arquivos enviados
 /uploads/
-/uploads/*
+uploads/
 
 # Vendor (Composer)
 vendor/
 composer.lock
 
-# Arquivos de log
+# Logs
 *.log
 
-# Configurações locais
-.env
-*.env
+# Arquivos temporários
+*.tmp
+*.cache
 
-# Sistema do VSCode
+# VSCode
 .vscode/
 
 # Sistema Windows
 Thumbs.db
 desktop.ini
 
-# Backups
+# Backups / compactados
 *.bak
 *.old
 *.zip
 *.rar
+
+# Hospedagens
+cache/
+session/
+
+# Builds
+/build/
