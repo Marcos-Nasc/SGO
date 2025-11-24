@@ -6,7 +6,9 @@ function abrirModalMonitor(dadosLinha) {
     if (!modalMonitor) return;
 
     // Feedback de carregamento
-    document.getElementById('monitorTitulo').innerText = "Carregando detalhes...";
+    const tituloElement = document.getElementById('monitorTitulo');
+    if(tituloElement) tituloElement.innerText = "Carregando detalhes...";
+    
     modalMonitor.classList.add('active');
 
     const formData = new FormData();
@@ -19,13 +21,22 @@ function abrirModalMonitor(dadosLinha) {
         if (data.status === 'sucesso') {
             preencherModalCompleto(data.dados);
         } else {
-            alert(data.msg);
+            // CORREÇÃO 1: Substituí alert(data.msg) por showNotification
+            if (typeof showNotification === 'function') {
+                showNotification('erro', data.msg);
+            } else {
+                alert(data.msg); // Fallback
+            }
             fecharModalMonitor();
         }
     })
     .catch(err => {
         console.error(err);
-        alert("Erro de comunicação ao buscar detalhes.");
+        // CORREÇÃO 2: Substituí alert(...) por showNotification
+        if (typeof showNotification === 'function') {
+            showNotification('erro', "Erro de comunicação ao buscar detalhes.");
+        }
+        fecharModalMonitor(); // Opcional: fecha o modal se der erro grave
     });
 }
 

@@ -34,7 +34,8 @@ $hoje = date('Y-m-d');
     <table class="widget-table" id="tabelaCobrancas">
         <thead>
             <tr>
-                <th>Vencimento</th> <th>Nº OS</th>
+                <th>Vencimento</th>
+                <th>Nº OS</th>
                 <th>Mantenedor</th>
                 <th>Contrato</th>
                 <th>Valor Final</th>
@@ -44,18 +45,18 @@ $hoje = date('Y-m-d');
         </thead>
         <tbody>
             <?php if ($resultado && $resultado->num_rows > 0): ?>
-                <?php while($venda = $resultado->fetch_assoc()): 
+                <?php while ($venda = $resultado->fetch_assoc()):
                     $is_vencido = $venda['data_previsao_cobranca'] < $hoje;
                     $is_hoje = $venda['prioridade'] == 1;
                 ?>
-                    <tr <?php if($is_hoje) echo 'class="priority-today"'; ?>>
+                    <tr <?php if ($is_hoje) echo 'class="priority-today"'; ?>>
                         <td>
                             <strong style="<?php echo ($is_vencido || $is_hoje) ? 'color: #dc3545;' : ''; ?>">
                                 <?php echo date('d/m/Y', strtotime($venda['data_previsao_cobranca'])); ?>
                             </strong>
-                            <?php if($is_hoje): ?>
+                            <?php if ($is_hoje): ?>
                                 <span class="badge-hoje">HOJE</span>
-                            <?php elseif($is_vencido): ?>
+                            <?php elseif ($is_vencido): ?>
                                 <span class="badge-hoje" style="background-color: #ffc107;">VENCIDO</span>
                             <?php endif; ?>
                         </td>
@@ -65,28 +66,30 @@ $hoje = date('Y-m-d');
                         <td>R$ <?php echo number_format($venda['valor_final'], 2, ',', '.'); ?></td>
                         <td>R$ <?php echo number_format($venda['valor_entrada'], 2, ',', '.'); ?></td>
                         <td class="acoes-buttons">
-                            <button class="btn-approve" onclick="aprovarCobranca(this, <?php echo $venda['id']; ?>)">
-                                <i class="bi bi-check-circle-fill"></i> Aprovar
+                            <button class="btn-approve"
+                                data-venda-id="<?php echo $venda['id']; ?>"
+                                data-os="<?php echo htmlspecialchars($venda['numero_os']); ?>"
+                                onclick="aprovarCobranca(this, <?php echo $venda['id']; ?>)"> <i class="bi bi-check-circle-fill"></i> Aprovar
                             </button>
-                            <button class="btn-details" 
-                                    onclick="abrirModalDetalhes(this)"
-                                    data-venda-id="<?php echo $venda['id']; ?>"
-                                    data-os="<?php echo htmlspecialchars($venda['numero_os']); ?>"
-                                    data-mantenedor="<?php echo htmlspecialchars($venda['mantenedor_nome']); ?>"
-                                    data-telefone="<?php echo htmlspecialchars($venda['mantenedor_telefone']); ?>"
-                                    data-email="<?php echo htmlspecialchars($venda['mantenedor_email']); ?>"
-                                    data-contrato="<?php echo htmlspecialchars($venda['contrato_numero']); ?>"
-                                    data-servico="<?php echo htmlspecialchars($venda['servico_nome']); ?>"
-                                    data-data-venda="<?php echo date('d/m/Y', strtotime($venda['data_venda'])); ?>"
-                                    data-nf="<?php echo htmlspecialchars($venda['numero_nf']); ?>"
-                                    data-familia="<?php echo $venda['familia_comparecer'] ? 'Sim' : 'Não'; ?>"
-                                    data-valor-final="R$ <?php echo number_format($venda['valor_final'], 2, ',', '.'); ?>"
-                                    data-condicao="<?php echo htmlspecialchars($venda['condicao_pagamento']); ?>"
-                                    data-valor-entrada="R$ <?php echo number_format($venda['valor_entrada'], 2, ',', '.'); ?>"
-                                    data-parcelas="<?php echo htmlspecialchars($venda['qtde_parcelas']); ?>"
-                                    data-valor-parcela="R$ <?php echo number_format($venda['valor_parcela'], 2, ',', '.'); ?>"
-                                    data-previsao="<?php echo date('d/m/Y', strtotime($venda['data_previsao_cobranca'])); ?>"
-                                    data-is-hoje="<?php echo $is_hoje ? '1' : '0'; ?>">
+                            <button class="btn-details"
+                                onclick="abrirModalDetalhes(this)"
+                                data-venda-id="<?php echo $venda['id']; ?>"
+                                data-os="<?php echo htmlspecialchars($venda['numero_os']); ?>"
+                                data-mantenedor="<?php echo htmlspecialchars($venda['mantenedor_nome']); ?>"
+                                data-telefone="<?php echo htmlspecialchars($venda['mantenedor_telefone']); ?>"
+                                data-email="<?php echo htmlspecialchars($venda['mantenedor_email']); ?>"
+                                data-contrato="<?php echo htmlspecialchars($venda['contrato_numero']); ?>"
+                                data-servico="<?php echo htmlspecialchars($venda['servico_nome']); ?>"
+                                data-data-venda="<?php echo date('d/m/Y', strtotime($venda['data_venda'])); ?>"
+                                data-nf="<?php echo htmlspecialchars($venda['numero_nf']); ?>"
+                                data-familia="<?php echo $venda['familia_comparecer'] ? 'Sim' : 'Não'; ?>"
+                                data-valor-final="R$ <?php echo number_format($venda['valor_final'], 2, ',', '.'); ?>"
+                                data-condicao="<?php echo htmlspecialchars($venda['condicao_pagamento']); ?>"
+                                data-valor-entrada="R$ <?php echo number_format($venda['valor_entrada'], 2, ',', '.'); ?>"
+                                data-parcelas="<?php echo htmlspecialchars($venda['qtde_parcelas']); ?>"
+                                data-valor-parcela="R$ <?php echo number_format($venda['valor_parcela'], 2, ',', '.'); ?>"
+                                data-previsao="<?php echo date('d/m/Y', strtotime($venda['data_previsao_cobranca'])); ?>"
+                                data-is-hoje="<?php echo $is_hoje ? '1' : '0'; ?>">
                                 Detalhes
                             </button>
                         </td>
@@ -108,7 +111,7 @@ $hoje = date('Y-m-d');
             <h3 id="modalTituloOS">Detalhes da Venda - OS 0024</h3>
             <button class="close-modal" onclick="fecharModalDetalhes()">&times;</button>
         </div>
-        
+
         <div class="modal-card">
             <h4><i class="bi bi-person-fill"></i> Informações do Cliente</h4>
             <div class="detalhes-grid">
@@ -168,20 +171,20 @@ $hoje = date('Y-m-d');
                     <label>Valor Entrada</label>
                     <span id="modalValorEntrada"></span>
                 </div>
-                 <div class="detalhe-item">
+                <div class="detalhe-item">
                     <label>Família?</label>
                     <span id="modalFamilia"></span>
                 </div>
             </div>
-            
+
             <div class="form-separator" style="margin: 15px 0;"></div>
-            
-             <div class="detalhes-grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
+
+            <div class="detalhes-grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div class="detalhe-item">
                     <label>Nº Parcelas</label>
                     <span id="modalParcelas" style="font-size: 1.2rem;"></span>
                 </div>
-                 <div class="detalhe-item">
+                <div class="detalhe-item">
                     <label>Valor da Parcela</label>
                     <strong id="modalValorParcela" style="font-size: 1.5rem;"></strong>
                 </div>

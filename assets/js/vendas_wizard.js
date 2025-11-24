@@ -42,7 +42,7 @@ const dataPrevisaoInput = document.getElementById('dataPrevisao');
 const btnConcluirVenda = document.getElementById('btnConcluirVenda');
 const filtroTipo = document.getElementById('filtroTipo');
 const selectProduto = document.getElementById('selectProduto');
-const inputNumeroOS = document.getElementById('numero_os'); // Agora vai encontrar
+const inputNumeroOS = document.getElementById('numero_os');
 const stepperProgress = document.getElementById('stepperProgress');
 
 
@@ -79,16 +79,19 @@ function atualizarUI() {
     // 3. Lógica dos Círculos e Ícones
     for (let i = 1; i <= 3; i++) {
         const stepEl = document.getElementById(`step-indicator-${i}`);
-        const circleEl = stepEl.querySelector('.step-circle');
-        
-        circleEl.innerHTML = i; // Reseta para número
+        if (stepEl) { 
+            const circleEl = stepEl.querySelector('.step-circle');
+            if (circleEl) {
+                circleEl.innerHTML = i; // Reseta para número
 
-        if (i < currentStep) {
-            stepEl.classList.add('completed');
-            circleEl.innerHTML = '<i class="bi bi-check-lg"></i>';
-        }
-        if (i === currentStep) {
-            stepEl.classList.add('active');
+                if (i < currentStep) {
+                    stepEl.classList.add('completed');
+                    circleEl.innerHTML = '<i class="bi bi-check-lg"></i>';
+                }
+                if (i === currentStep) {
+                    stepEl.classList.add('active');
+                }
+            }
         }
     }
 
@@ -112,38 +115,41 @@ function atualizarUI() {
 }
 
 function fecharModal() {
-    modal.classList.remove('active');
+    if (modal) modal.classList.remove('active');
+    
+    // ... (Resto da lógica de reset) ...
     document.getElementById('formVenda').reset();
     inputBusca.value = '';
     listaResultados.innerHTML = '';
-    listaResultados.style.display = 'none';
-    listaContratos.innerHTML = '';
+    if (listaResultados) listaResultados.style.display = 'none';
+    if (listaContratos) listaContratos.innerHTML = '';
     
     document.getElementById('selected_mantenedor_id').value = '';
     document.getElementById('selected_contrato_id').value = '';
     
-    // Desabilita todos os botões de navegação
-    btnNext1.disabled = true;
-    btnNext2.disabled = true;
-    btnSalvarNovoMantenedor.disabled = true;
-    btnSalvarNovoContrato.disabled = true;
-    btnConcluirVenda.disabled = true;
-    btnConcluirVenda.innerHTML = 'Concluir Venda'; // Reseta o texto do botão
+    if (btnNext1) btnNext1.disabled = true;
+    if (btnNext2) btnNext2.disabled = true;
+    if (btnSalvarNovoMantenedor) btnSalvarNovoMantenedor.disabled = true;
+    if (btnSalvarNovoContrato) btnSalvarNovoContrato.disabled = true;
+    if (btnConcluirVenda) btnConcluirVenda.disabled = true;
+    if (btnConcluirVenda) btnConcluirVenda.innerHTML = 'Concluir Venda';
 
-    // Reseta a trava de segurança
     isSubmitting = false; 
 
-    novoMantenedorNome.value = '';
-    novoMantenedorEmail.value = '';
-    novoMantenedorTelefone.value = '';
+    if (novoMantenedorNome) novoMantenedorNome.value = '';
+    if (novoMantenedorEmail) novoMantenedorEmail.value = '';
+    if (novoMantenedorTelefone) novoMantenedorTelefone.value = '';
 
-    // Reseta Etapa 3
-    checkFamilia.disabled = true;
-    checkFamilia.checked = false;
-    wrapperFamilia.classList.add('disabled');
-    divCamposPrazo.style.display = 'none';
-    alertaEntrada.style.display = 'none';
-    resumoParcelas.style.display = 'none';
+    if (checkFamilia) checkFamilia.disabled = true;
+    if (checkFamilia) checkFamilia.checked = false;
+    if (wrapperFamilia) wrapperFamilia.classList.add('disabled');
+    if (divCamposPrazo) divCamposPrazo.style.display = 'none';
+    if (alertaEntrada) alertaEntrada.style.display = 'none';
+    if (resumoParcelas) resumoParcelas.style.display = 'none';
+    
+    // Reseta para a visão de busca
+    toggleMantenedorView('busca');
+    toggleContratoView('busca');
 }
 
 
@@ -157,66 +163,67 @@ function mostrarCadastroMantenedor() {
 }
 function mostrarBuscaMantenedor() {
     currentSubStep1 = 'busca';
-    btnNext1.disabled = true;
-    document.getElementById('selected_mantenedor_id').value = '';
+    if (btnNext1) btnNext1.disabled = true;
+    if (document.getElementById('selected_mantenedor_id')) document.getElementById('selected_mantenedor_id').value = '';
     atualizarUI();
 }
 function selecionarMantenedor(id, nome) {
     document.getElementById('selected_mantenedor_id').value = id;
     inputBusca.value = nome;
     document.getElementById('labelNomeMantenedor').innerText = nome;
-    btnNext1.disabled = false; // Habilita o botão
-    listaResultados.style.display = 'none';
+    if (btnNext1) btnNext1.disabled = false;
+    if (listaResultados) listaResultados.style.display = 'none';
     carregarContratos(id);
 }
 function validarFormNovoMantenedor() {
-    const nomeValido = novoMantenedorNome.value.trim().length > 2;
-    const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(novoMantenedorEmail.value.trim());
-    btnSalvarNovoMantenedor.disabled = !(nomeValido && emailValido);
+    const nomeValido = novoMantenedorNome?.value.trim().length > 2;
+    const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(novoMantenedorEmail?.value.trim());
+    if (btnSalvarNovoMantenedor) btnSalvarNovoMantenedor.disabled = !(nomeValido && emailValido);
 }
 function salvarNovoMantenedor() {
     if (isSubmitting) return;
     isSubmitting = true;
-    btnSalvarNovoMantenedor.disabled = true;
+    if (btnSalvarNovoMantenedor) btnSalvarNovoMantenedor.disabled = true;
 
     const formData = new FormData();
     formData.append('acao', 'salvar_mantenedor');
-    formData.append('nome', novoMantenedorNome.value);
-    formData.append('email', novoMantenedorEmail.value);
-    formData.append('telefone', novoMantenedorTelefone.value);
+    formData.append('nome', novoMantenedorNome?.value);
+    formData.append('email', novoMantenedorEmail?.value);
+    formData.append('telefone', novoMantenedorTelefone?.value);
 
     fetch('pages/vendas/actions.php', { method: 'POST', body: formData })
     .then(response => response.json())
     .then(data => {
         isSubmitting = false; 
         if (data.status === 'sucesso') {
+            showNotification('sucesso', data.msg, 2500); // NOTIFICADO
             selecionarMantenedor(data.id, data.nome);
             proximoPasso(2);
         } else {
-            alert('Erro ao cadastrar mantenedor: ' + data.msg);
-            btnSalvarNovoMantenedor.disabled = false;
+            showNotification('erro', 'Erro ao cadastrar: ' + data.msg, 5000); // NOTIFICADO
+            if (btnSalvarNovoMantenedor) btnSalvarNovoMantenedor.disabled = false;
         }
     })
     .catch(err => {
         isSubmitting = false; 
-        btnSalvarNovoMantenedor.disabled = false;
-        alert('Erro na comunicação com o servidor.');
+        if (btnSalvarNovoMantenedor) btnSalvarNovoMantenedor.disabled = false;
+        showNotification('erro', 'Erro na comunicação com o servidor.', 5000); // NOTIFICADO
     });
 }
 
 // ETAPA 2: CONTRATO
 function mostrarCadastroContrato() {
     currentSubStep2 = 'cadastro';
-    const nomeMantenedor = document.getElementById('labelNomeMantenedor').innerText;
-    document.getElementById('labelNomeMantenedorCadastro').innerText = nomeMantenedor;
+    const nomeMantenedor = document.getElementById('labelNomeMantenedor')?.innerText;
+    if (document.getElementById('labelNomeMantenedorCadastro')) document.getElementById('labelNomeMantenedorCadastro').innerText = nomeMantenedor || '';
     carregarCemiterios();
     validarFormNovoContrato();
     atualizarUI();
 }
 function mostrarBuscaContrato() {
     currentSubStep2 = 'busca';
-    btnNext2.disabled = true;
-    document.getElementById('selected_contrato_id').value = '';
+    if (btnNext2) btnNext2.disabled = true;
+    if (document.getElementById('selected_contrato_id')) document.getElementById('selected_contrato_id').value = '';
     atualizarUI();
 }
 function carregarContratos(mantenedorId) {
@@ -224,13 +231,13 @@ function carregarContratos(mantenedorId) {
     formData.append('acao', 'buscar_contratos');
     formData.append('mantenedor_id', mantenedorId);
     
-    document.getElementById('selected_contrato_id').value = '';
-    btnNext2.disabled = true;
+    if (document.getElementById('selected_contrato_id')) document.getElementById('selected_contrato_id').value = '';
+    if (btnNext2) btnNext2.disabled = true;
 
     fetch('pages/vendas/actions.php', { method: 'POST', body: formData })
     .then(response => response.json())
     .then(data => {
-        listaContratos.innerHTML = '';
+        if (listaContratos) listaContratos.innerHTML = '';
         if (data.length > 0) {
             data.forEach(contrato => {
                 const div = document.createElement('div');
@@ -240,20 +247,21 @@ function carregarContratos(mantenedorId) {
                 div.onclick = function() {
                     document.querySelectorAll('#listaContratos .result-item').forEach(el => el.classList.remove('selected'));
                     this.classList.add('selected');
-                    document.getElementById('selected_contrato_id').value = contrato.id;
-                    btnNext2.disabled = false; // Habilita o botão
+                    if (document.getElementById('selected_contrato_id')) document.getElementById('selected_contrato_id').value = contrato.id;
+                    if (btnNext2) btnNext2.disabled = false;
                 };
-                listaContratos.appendChild(div);
+                if (listaContratos) listaContratos.appendChild(div);
             });
         } else {
-            listaContratos.innerHTML = '<p style="padding:10px; color:var(--cor-texto-secundario);">Nenhum contrato encontrado. Cadastre um novo.</p>';
-            btnNext2.disabled = true;
+            if (listaContratos) listaContratos.innerHTML = '<p style="padding:10px; color:var(--cor-texto-secundario);">Nenhum contrato encontrado. Cadastre um novo.</p>';
+            if (btnNext2) btnNext2.disabled = true;
         }
     });
 }
 function carregarCemiterios() {
     const selectCemiterio = document.getElementById('novoContratoCemiterio');
-    if (selectCemiterio.options.length > 1) return;
+    if (!selectCemiterio || selectCemiterio.options.length > 1) return;
+    
     const formData = new FormData();
     formData.append('acao', 'buscar_cemiterios');
     fetch('pages/vendas/actions.php', { method: 'POST', body: formData })
@@ -269,52 +277,57 @@ function carregarCemiterios() {
     });
 }
 function validarFormNovoContrato() {
-    const filialValida = novoContratoCemiterio.value !== '';
-    const numeroValido = novoContratoNumero.value.trim().length > 0;
-    btnSalvarNovoContrato.disabled = !(filialValida && numeroValido);
+    const filialValida = novoContratoCemiterio?.value !== '';
+    const numeroValido = novoContratoNumero?.value.trim().length > 0;
+    if (btnSalvarNovoContrato) btnSalvarNovoContrato.disabled = !(filialValida && numeroValido);
 }
 function salvarNovoContrato() {
     if (isSubmitting) return;
     isSubmitting = true;
-    btnSalvarNovoContrato.disabled = true;
+    if (btnSalvarNovoContrato) btnSalvarNovoContrato.disabled = true;
 
     const formData = new FormData();
     formData.append('acao', 'salvar_contrato');
-    formData.append('mantenedor_id', document.getElementById('selected_mantenedor_id').value);
-    formData.append('cemiterio_id', novoContratoCemiterio.value);
-    formData.append('numero', novoContratoNumero.value);
-    formData.append('jazigo', document.getElementById('novoContratoJazigo').value);
-    formData.append('quadra', document.getElementById('novoContratoQuadra').value);
-    formData.append('bloco', document.getElementById('novoContratoBloco').value);
+    formData.append('mantenedor_id', document.getElementById('selected_mantenedor_id')?.value);
+    formData.append('cemiterio_id', novoContratoCemiterio?.value);
+    formData.append('numero', novoContratoNumero?.value);
+    formData.append('jazigo', document.getElementById('novoContratoJazigo')?.value);
+    formData.append('quadra', document.getElementById('novoContratoQuadra')?.value);
+    formData.append('bloco', document.getElementById('novoContratoBloco')?.value);
 
     fetch('pages/vendas/actions.php', { method: 'POST', body: formData })
     .then(response => response.json())
     .then(data => {
         isSubmitting = false; 
         if (data.status === 'sucesso') {
+            showNotification('sucesso', data.msg, 2500); // NOTIFICADO
             document.getElementById('selected_contrato_id').value = data.id;
             proximoPasso(3);
         } else {
-            alert('Erro: ' + data.msg);
-            btnSalvarNovoContrato.disabled = false;
+            showNotification('erro', 'Erro ao salvar contrato: ' + data.msg, 5000); // NOTIFICADO
+            if (btnSalvarNovoContrato) btnSalvarNovoContrato.disabled = false;
         }
     })
     .catch(err => {
         isSubmitting = false; 
-        btnSalvarNovoContrato.disabled = false;
-        alert('Erro ao comunicar com servidor.');
+        if (btnSalvarNovoContrato) btnSalvarNovoContrato.disabled = false;
+        showNotification('erro', 'Erro na comunicação com o servidor.', 5000); // NOTIFICADO
     });
 }
 
 // ETAPA 3: DADOS DA VENDA
 function filtrarProdutos() {
-    const tipo = filtroTipo.value;
-    selectProduto.value = "";
-    selectProduto.disabled = (tipo === "");
+    const tipo = filtroTipo?.value;
+    if (selectProduto) selectProduto.value = "";
+    if (selectProduto) selectProduto.disabled = (tipo === "");
     
-    selectProduto.querySelectorAll('option').forEach(opt => {
+    selectProduto?.querySelectorAll('option').forEach(opt => {
         if (opt.value === "") return;
-        opt.style.display = (opt.getAttribute('data-tipo') === tipo) ? 'block' : 'none';
+        if (opt.getAttribute('data-tipo') === tipo) {
+            opt.style.display = 'block';
+        } else {
+            opt.style.display = 'none';
+        }
     });
     validarEtapa3();
 }
@@ -329,11 +342,11 @@ function adicionarMeses(dataOriginal, meses) {
     return d.toLocaleDateString('pt-BR');
 }
 
-// *** FUNÇÃO CALCULAR PARCELAS (RECOLOCADA) ***
+// *** FUNÇÃO CALCULAR PARCELAS ***
 function calcularParcelas() {
-    const total = parseFloat(valorFinal.value) || 0;
-    const entrada = parseFloat(valorEntrada.value) || 0;
-    const parcelas = parseInt(qtdeParcelas.value) || 0;
+    const total = parseFloat(valorFinal?.value) || 0;
+    const entrada = parseFloat(valorEntrada?.value) || 0;
+    const parcelas = parseInt(qtdeParcelas?.value) || 0;
 
     const entradaReal = (entrada > total) ? total : entrada;
     const restante = total - entradaReal;
@@ -341,41 +354,41 @@ function calcularParcelas() {
     if (parcelas > 0 && total > 0) {
         if (restante > 0) {
             const valorParcela = restante / parcelas;
-            resumoParcelas.style.display = 'flex';
-            textoCalculoParcela.innerHTML = `Restante <strong>${formatarMoeda(restante)}</strong> em <strong>${parcelas}x</strong> de <strong>${formatarMoeda(valorParcela)}</strong>`;
+            if (resumoParcelas) resumoParcelas.style.display = 'flex';
+            if (textoCalculoParcela) textoCalculoParcela.innerHTML = `Restante <strong>${formatarMoeda(restante)}</strong> em <strong>${parcelas}x</strong> de <strong>${formatarMoeda(valorParcela)}</strong>`;
         } else {
-            resumoParcelas.style.display = 'flex';
-            textoCalculoParcela.innerHTML = "Entrada cobre o valor total (Venda quitada).";
+            if (resumoParcelas) resumoParcelas.style.display = 'flex';
+            if (textoCalculoParcela) textoCalculoParcela.innerHTML = "Entrada cobre o valor total (Venda quitada).";
         }
     } else {
-        resumoParcelas.style.display = 'none';
+        if (resumoParcelas) resumoParcelas.style.display = 'none';
     }
 }
 
 // *** FUNÇÃO VERIFICAR REGRAS (LÓGICA DA FAMÍLIA) ***
 function verificarRegraPagamento() {
-    const condicao = condicaoPagamento.value;
-    const total = parseFloat(valorFinal.value) || 0;
-    const entrada = parseFloat(valorEntrada.value) || 0;
-    const qtdParcelas = parseInt(qtdeParcelas.value) || 0;
+    const condicao = condicaoPagamento?.value;
+    const total = parseFloat(valorFinal?.value) || 0;
+    const entrada = parseFloat(valorEntrada?.value) || 0;
+    const qtdParcelas = parseInt(qtdeParcelas?.value) || 0;
     
     const metadeValor = total / 2;
     let podeMarcarFamilia = false;
     
-    alertaEntrada.style.display = 'none';
-    textoAlertaEntrada.innerHTML = '';
+    if (alertaEntrada) alertaEntrada.style.display = 'none';
+    if (textoAlertaEntrada) textoAlertaEntrada.innerHTML = '';
     dataLiberacaoCalculada = null; // Reseta a data calculada
 
     if (condicao === 'A Vista') {
         podeMarcarFamilia = true;
-        divCamposPrazo.style.display = 'none';
-        valorEntrada.value = '';
-        qtdeParcelas.value = '';
-        dataLiberacaoCalculada = dataPrevisaoInput.value; 
+        if (divCamposPrazo) divCamposPrazo.style.display = 'none';
+        if (valorEntrada) valorEntrada.value = '';
+        if (qtdeParcelas) qtdeParcelas.value = '';
+        dataLiberacaoCalculada = dataPrevisaoInput?.value; 
         
     } else { // 'A Prazo'
-        divCamposPrazo.style.display = 'block'; 
-        const dataInicial = dataPrevisaoInput.value;
+        if (divCamposPrazo) divCamposPrazo.style.display = 'block'; 
+        const dataInicial = dataPrevisaoInput?.value;
         
         if (entrada >= metadeValor && total > 0) {
             podeMarcarFamilia = true;
@@ -410,66 +423,68 @@ function verificarRegraPagamento() {
                 }
             }
 
-            alertaEntrada.style.display = 'block';
-            textoAlertaEntrada.innerHTML = `
+            if (alertaEntrada) alertaEntrada.style.display = 'block';
+            if (textoAlertaEntrada) textoAlertaEntrada.innerHTML = `
                 A entrada atual não atinge 50% do valor total.<br>
                 Faltam <strong>${formatarMoeda(faltaParaMeta)}</strong> para liberar a família.
                 ${mensagemProjecao}
             `;
         }
-        calcularParcelas(); // Chama a função que estava faltando
+        calcularParcelas(); 
     }
 
     // Atualiza Checkbox e Cursor
     if (podeMarcarFamilia) {
-        checkFamilia.disabled = false;
-        wrapperFamilia.classList.remove('disabled');
+        if (checkFamilia) checkFamilia.disabled = false;
+        if (wrapperFamilia) wrapperFamilia.classList.remove('disabled');
     } else {
-        checkFamilia.disabled = true;
-        checkFamilia.checked = false;
-        wrapperFamilia.classList.add('disabled');
+        if (checkFamilia) checkFamilia.disabled = true;
+        if (checkFamilia) checkFamilia.checked = false;
+        if (wrapperFamilia) wrapperFamilia.classList.add('disabled');
     }
     
     validarEtapa3(); // Valida o form final
 }
 
 function validarEtapa3() {
-    const tipoValido = filtroTipo.value !== '';
-    const produtoValido = selectProduto.value !== '';
-    const osValida = inputNumeroOS.value.trim() !== '';
-    const valorValido = (parseFloat(valorFinal.value) || 0) > 0;
+    const tipoValido = filtroTipo?.value !== '';
+    const produtoValido = selectProduto?.value !== '';
+    const osValida = inputNumeroOS?.value.trim() !== '';
+    const valorValido = (parseFloat(valorFinal?.value) || 0) > 0;
 
     let prazoValido = true;
-    if (condicaoPagamento.value === 'A Prazo') {
-        const parcelasValidas = (parseInt(qtdeParcelas.value) || 0) > 0;
-        const dataValida = dataPrevisaoInput.value !== '';
+    if (condicaoPagamento?.value === 'A Prazo') {
+        const parcelasValidas = (parseInt(qtdeParcelas?.value) || 0) > 0;
+        const dataValida = dataPrevisaoInput?.value !== '';
         prazoValido = parcelasValidas && dataValida; 
     }
 
     const formValido = tipoValido && produtoValido && osValida && valorValido && prazoValido;
-    // Só habilita o botão se o formulário for válido E não estiver enviando
-    btnConcluirVenda.disabled = !formValido || isSubmitting;
+    
+    if (btnConcluirVenda) btnConcluirVenda.disabled = !formValido || isSubmitting;
 }
 
+// --- CORREÇÃO APLICADA AQUI: REMOÇÃO DE ALERTS NATIVOS ---
 function finalizarVenda() {
     if (isSubmitting) return; 
     isSubmitting = true;
 
-    btnConcluirVenda.disabled = true;
-    btnConcluirVenda.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Salvando...';
+    if (btnConcluirVenda) {
+        btnConcluirVenda.disabled = true;
+        btnConcluirVenda.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Salvando...';
+    }
     
     const form = document.getElementById('formVenda');
     const formData = new FormData(form);
     formData.append('acao', 'salvar_venda');
 
-    if (condicaoPagamento.value === 'A Vista') {
+    if (condicaoPagamento?.value === 'A Vista') {
         formData.append('valor_entrada', '');
         formData.append('qtde_parcelas', '');
-        formData.append('data_previsao_cobranca', ''); // Envia vazio se for 'A Vista'
+        formData.append('data_previsao_cobranca', ''); 
     } else {
-        formData.append('valor_entrada', valorEntrada.value);
-        formData.append('qtde_parcelas', qtdeParcelas.value);
-        // Envia a data de liberação calculada (que pode ser a 1ª parcela se 50% foi pago)
+        formData.append('valor_entrada', valorEntrada?.value);
+        formData.append('qtde_parcelas', qtdeParcelas?.value);
         formData.append('data_previsao_cobranca', dataLiberacaoCalculada); 
     }
 
@@ -477,23 +492,30 @@ function finalizarVenda() {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'sucesso') {
-            alert(data.msg);
-            location.reload();
+            // SUCESSO COM TOAST E TIMEOUT
+            showNotification('sucesso', data.msg, 2000);
+            setTimeout(() => { location.reload(); }, 2000);
         } else {
-            alert('Erro: ' + data.msg);
+            // ERRO COM TOAST
+            showNotification('erro', 'Erro: ' + data.msg, 5000);
+            
             isSubmitting = false; 
-            btnConcluirVenda.disabled = false;
-            btnConcluirVenda.innerHTML = 'Concluir Venda';
+            if (btnConcluirVenda) btnConcluirVenda.disabled = false;
+            if (btnConcluirVenda) btnConcluirVenda.innerHTML = 'Concluir Venda';
         }
     })
     .catch(err => {
         console.error('Fetch Error:', err);
-        alert('Erro de comunicação. Tente novamente.');
+        // ERRO DE REDE COM TOAST
+        showNotification('erro', 'Erro de comunicação. Tente novamente.', 5000);
+        
         isSubmitting = false; 
-        btnConcluirVenda.disabled = false;
-        btnConcluirVenda.innerHTML = 'Concluir Venda';
+        if (btnConcluirVenda) btnConcluirVenda.disabled = false;
+        if (btnConcluirVenda) btnConcluirVenda.innerHTML = 'Concluir Venda';
     });
 }
+
+// ... (Restante do código) ...
 
 // --- 4. ADICIONANDO EVENT LISTENERS ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -601,8 +623,5 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('#step-2-busca-contrato .btn-primary')?.addEventListener('click', () => proximoPasso(3));
     }
 
-
-    // --- LISTENER DO MODAL (GLOBAL) ---
     const closeModalBtn = document.querySelector('.close-modal');
-    // opcional: closeModalBtn?.addEventListener('click', fecharModal);
 });

@@ -55,16 +55,10 @@ $resultado = $conexao->query($sql);
                         <td><?php echo htmlspecialchars($row['mantenedor_telefone']); ?></td>
                         <td><?php echo htmlspecialchars($row['servico_nome']); ?></td>
                         <td class="acoes-buttons">
-                            <button class="btn-approve" 
-                                    onclick="abrirModalConfirmacao(
-                                        <?php echo $row['agendamento_id']; ?>,
-                                        '<?php echo htmlspecialchars($row['numero_os']); ?>',
-                                        '<?php echo htmlspecialchars($row['mantenedor_nome']); ?>',
-                                        '<?php echo htmlspecialchars($row['mantenedor_telefone']); ?>',
-                                        '<?php echo htmlspecialchars($row['servico_nome']); ?>',
-                                        '<?php echo date('d/m/Y \à\s H:i', strtotime($row['data_agendada'])); ?>'
-                                    )">
-                                <i class="bi bi-telephone-fill"></i> Confirmar
+                            <button class="btn-confirm"
+                                style="background-color: #28a745; color: white;"
+                                onclick="abrirModalConfirmacao(<?php echo $row['agendamento_id']; ?>, '<?php echo htmlspecialchars($row['numero_os'] ?? ''); ?>', '<?php echo htmlspecialchars($row['mantenedor_nome'] ?? ''); ?>', '<?php echo htmlspecialchars($row['mantenedor_telefone'] ?? ''); ?>', '<?php echo htmlspecialchars($row['servico_nome'] ?? ''); ?>', '<?php echo date('d/m/Y', strtotime($row['data_agendada'])); ?>')">
+                                <i class="bi bi-check2-square"></i> Confirmar
                             </button>
                         </td>
                     </tr>
@@ -105,7 +99,7 @@ $resultado = $conexao->query($sql);
                 </p>
             </div>
         </div>
-        
+
         <div class="form-group">
             <label>Observações do Contato (Opcional)</label>
             <textarea id="obsConfirmacao" class="form-control" rows="2" placeholder="Ex: Confirmado com Sr. João, pediu para chegar 10min antes..."></textarea>
@@ -115,7 +109,7 @@ $resultado = $conexao->query($sql);
 
         <div class="modal-footer-buttons" style="justify-content: space-between;">
             <button type="button" class="btn-back" onclick="fecharModalConfirmacao()">Cancelar</button>
-            
+
             <div style="display:flex; gap:10px;">
                 <button type="button" class="btn-validation reject" id="btnReagendar" onclick="rejeitarAgendamento()">
                     <i class="bi bi-x-circle"></i> Cliente Cancelou

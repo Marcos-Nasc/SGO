@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             timerId = setTimeout(() => {
                 salvarNota(textarea.value);
-            }, 1500);
+            }, 2000);
         });
     }
 
@@ -45,13 +45,20 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(response => response.json())
         .then(data => {
+            // USANDO SHOWNOTIFICATION
             if (data.status === 'sucesso' && feedback) {
                 feedback.textContent = 'Salvo!';
                 feedback.style.color = '#198754';
+                // CORREÇÃO: Status 'sucesso' (do PHP) e tempo de 2000ms
+                showNotification('sucesso', 'Anotações salvas automaticamente!', 2000); 
             } else if (feedback) {
                 feedback.textContent = 'Erro ao salvar.';
                 feedback.style.color = '#dc3545';
+                showNotification('erro', 'Falha ao salvar anotações.', 4000);
             }
+        })
+        .catch(err => {
+            showNotification('erro', 'Erro de comunicação ao salvar anotações.', 4000);
         });
     }
 
@@ -83,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', (e) => {
             const filtro = button.id.replace('btn-agenda-', ''); // 'hoje', 'amanha', 'semana', etc.
             // Chama a função que preenche a lista PRINCIPAL
-            carregarAgendaPrincipal(filtro, button);
+            carregarAgenda(filtro, button);
         });
     });
 
@@ -170,8 +177,11 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 listaElemento.innerHTML = '<li class="agenda-item-vazio">Nenhum agendamento encontrado.</li>';
             }
+        })
+        .catch(err => {
+            listaElemento.innerHTML = '<li class="agenda-item-vazio">Erro ao carregar agenda.</li>';
+            showNotification('error', 'Falha na comunicação ao carregar agenda.', 4000);
         });
     }
 
 });
-

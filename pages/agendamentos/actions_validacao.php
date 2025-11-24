@@ -122,15 +122,15 @@ if ($acao == 'enviar_email_cliente') {
         // --- SUAS NOVAS CONFIGURAÇÕES DO GMAIL (ATHENA) ---
         $mail->Host = "email-ssl.com.br"; 
         $mail->SMTPAuth = true; 
-        $mail->Username = 'marcos.correia@reviver.srv.br'; 
-        $mail->Password = 'Ma@20504177729';
+        $mail->Username = 'contato@concessionariareviver.com.br'; 
+        $mail->Password = 'Douglas@39743450';
         $mail->Port = 587; 
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // (tls)
         $mail->CharSet = 'UTF-8';
         // ------------------------------------------
 
         // Remetente (DEVE ser o mesmo do Username)
-        $mail->setFrom('marcos.correia@reviver.srv.br', 'SGO - Serviços Reviver');
+        $mail->setFrom('contato@concessionariareviver.com.br', 'SGO - Serviços Reviver');
         $mail->addAddress($venda_info['cliente_email'], $venda_info['cliente_nome']);
         // O "ReplyTo" (Para onde o cliente responde) pode ser o e-mail de contato
         $mail->addReplyTo('contato@concessionariareviver.com.br', 'SGO');

@@ -17,4 +17,6 @@
 </head>
 <body>
     
-    <div class="app-container">
+    <div id="notification-container"></div>
+    
+        <div class="app-container">

@@ -11,11 +11,8 @@ $sql = "SELECT * FROM mantenedores WHERE nome LIKE '%$busca%' OR email LIKE '%$b
 $resultado = $conexao->query($sql);
 ?>
 
-<div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+<div class="page-header" style="margin-bottom: 20px;">
     <h2>Gerenciamento de Clientes (Mantenedores)</h2>
-    <button class="btn-primary" onclick="abrirModalMantenedor()">
-        <i class="bi bi-person-plus-fill"></i> Novo Cliente
-    </button>
 </div>
 
 <div class="content-widget" style="margin-bottom: 20px; padding: 20px;">
@@ -31,7 +28,7 @@ $resultado = $conexao->query($sql);
     </form>
 </div>
 
-<div class="content-widget" style="padding: 20px;">
+<div class="content-widget" style="padding: 15;">
     <table class="widget-table">
         <thead>
             <tr>
@@ -43,34 +40,45 @@ $resultado = $conexao->query($sql);
             </tr>
         </thead>
         <tbody>
-            <?php if($resultado && $resultado->num_rows > 0): ?>
-                <?php while($m = $resultado->fetch_assoc()): 
+            <?php if ($resultado && $resultado->num_rows > 0): ?>
+                <?php while ($m = $resultado->fetch_assoc()):
                     $statusClass = $m['status'] == 'Ativo' ? 'badge-aprovado' : 'badge-rejeitado';
-                    // Formata telefone visualmente (opcional)
-                    $tel = $m['telefone']; 
+                    $tel = $m['telefone'];
+
+                    // Tratamento de segurança para o JSON do botão Editar
+                    $jsonCliente = htmlspecialchars(json_encode($m), ENT_QUOTES, 'UTF-8');
                 ?>
-                <tr>
-                    <td>
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <strong><?php echo htmlspecialchars($m['nome']); ?></strong>
-                        </div>
-                    </td>
-                    <td><?php echo htmlspecialchars($m['email']); ?></td>
-                    <td><?php echo htmlspecialchars($tel); ?></td>
-                    <td><span class="badge <?php echo $statusClass; ?>"><?php echo $m['status']; ?></span></td>
-                    <td class="acoes-buttons">
-                        <button class="btn-details" onclick='editarMantenedor(<?php echo json_encode($m); ?>)'>
-                            <i class="bi bi-pencil-square"></i> Editar
-                        </button>
-                        <button class="btn-approve" style="background-color: var(--cor-link-ativo-fundo); color: var(--cor-link-ativo-texto); border: 1px solid var(--cor-link-ativo-texto);" 
-                                onclick="verContratos(<?php echo $m['id']; ?>, '<?php echo htmlspecialchars($m['nome']); ?>')">
-                            <i class="bi bi-file-earmark-text"></i> Contratos
-                        </button>
-                    </td>
-                </tr>
+                    <tr>
+                        <td>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <strong><?php echo htmlspecialchars($m['nome']); ?></strong>
+                            </div>
+                        </td>
+                        <td><?php echo htmlspecialchars($m['email']); ?></td>
+                        <td><?php echo htmlspecialchars($tel); ?></td>
+                        <td><span class="badge <?php echo $statusClass; ?>"><?php echo $m['status']; ?></span></td>
+                        <td class="acoes-buttons">
+                            <button class="btn-details" onclick='editarMantenedor(<?php echo $jsonCliente; ?>)' style="padding: 10px;">
+                                <i class="bi bi-pencil-square"></i> Editar
+                            </button>
+
+                            <button class="btn-details"
+                                style="background-color: var(--cor-card); color: var(--cor-link-ativo-texto); border: 1px solid var(--cor-link-ativo-texto); padding: 10px"
+                                onclick="verContratos(<?php echo $m['id']; ?>, '<?php echo addslashes($m['nome']); ?>')">
+                                <i class="bi bi-file-earmark-text-fill"></i> Contratos
+                            </button>
+
+                            <button class="btn-delete" title="Excluir Cliente"
+                                onclick="excluirMantenedor(<?php echo $m['id']; ?>)" style="color: red; border: 1px solid red; font-size: 0.9em">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
                 <?php endwhile; ?>
             <?php else: ?>
-                <tr><td colspan="5" style="text-align:center; padding:30px; color:var(--cor-texto-secundario);">Nenhum cliente encontrado.</td></tr>
+                <tr>
+                    <td colspan="5" style="text-align:center; padding:30px; color:var(--cor-texto-secundario);">Nenhum cliente encontrado.</td>
+                </tr>
             <?php endif; ?>
         </tbody>
     </table>
@@ -79,7 +87,7 @@ $resultado = $conexao->query($sql);
 <div id="modalMantenedor" class="modal-overlay">
     <div class="modal-content" style="max-width: 600px;">
         <div class="modal-header">
-            <h3 id="tituloModalMantenedor">Novo Cliente</h3>
+            <h3 id="tituloModalMantenedor">Editar Cliente</h3>
             <button class="close-modal" onclick="fecharModalMantenedor()">&times;</button>
         </div>
 
@@ -90,15 +98,15 @@ $resultado = $conexao->query($sql);
             <div class="modal-form-grid">
                 <div class="form-group full-width">
                     <label>Nome Completo</label>
-                    <input type="text" name="nome" id="mantenedorNome" placeholder="Ex: João da Silva" required>
+                    <input type="text" name="nome" id="mantenedorNome" required>
                 </div>
                 <div class="form-group">
                     <label>E-mail</label>
-                    <input type="email" name="email" id="mantenedorEmail" placeholder="cliente@email.com">
+                    <input type="email" name="email" id="mantenedorEmail">
                 </div>
                 <div class="form-group">
                     <label>Telefone</label>
-                    <input type="text" name="telefone" id="mantenedorTelefone" placeholder="(XX) XXXXX-XXXX">
+                    <input type="text" name="telefone" id="mantenedorTelefone">
                 </div>
                 <div class="form-group full-width">
                     <label>Status</label>
@@ -112,7 +120,7 @@ $resultado = $conexao->query($sql);
             <div class="form-separator"></div>
             <div class="modal-footer-buttons" style="justify-content: flex-end;">
                 <button type="button" class="btn-back" onclick="fecharModalMantenedor()">Cancelar</button>
-                <button type="submit" class="btn-primary">Salvar Dados</button>
+                <button type="submit" class="btn-primary">Salvar Alterações</button>
             </div>
         </form>
     </div>
@@ -124,17 +132,59 @@ $resultado = $conexao->query($sql);
             <h3 id="tituloModalContratos">Contratos do Cliente</h3>
             <button class="close-modal" onclick="fecharModalContratos()">&times;</button>
         </div>
-        
+
         <div id="listaContratosConteudo"></div>
-        
+
         <div class="form-separator"></div>
-        
+
         <div class="modal-footer-buttons" style="justify-content: flex-end;">
-            <button class="btn-primary" id="btnNovoContratoManual" onclick="novoContratoParaMantenedor()">
-                <i class="bi bi-plus-lg"></i> Adicionar Contrato
-            </button>
+            <button type="button" class="btn-back" onclick="fecharModalContratos()">Fechar</button>
         </div>
     </div>
 </div>
 
-<script src="assets/js/mantenedores.js"></script>
+<div id="modalEditarContrato" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3 id="tituloEditarContrato">Editar Contrato</h3>
+            <button class="close-modal" onclick="fecharModalEditarContrato()">&times;</button>
+        </div>
+
+        <form id="formEditarContrato">
+            <input type="hidden" name="acao" value="editar_contrato">
+            <input type="hidden" name="id" id="editContratoId">
+
+            <div class="form-group">
+                <label>Filial (Cemitério)</label>
+                <select name="cemiterio_id" id="editContratoCemiterio" required>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Número do Contrato</label>
+                <input type="text" name="numero" id="editContratoNumero" required>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+                <div class="form-group">
+                    <label>Jazigo</label>
+                    <input type="text" name="jazigo" id="editContratoJazigo">
+                </div>
+                <div class="form-group">
+                    <label>Quadra</label>
+                    <input type="text" name="quadra" id="editContratoQuadra">
+                </div>
+                <div class="form-group">
+                    <label>Bloco</label>
+                    <input type="text" name="bloco" id="editContratoBloco">
+                </div>
+            </div>
+
+            <div class="form-separator"></div>
+            <div class="modal-footer-buttons" style="justify-content: flex-end;">
+                <button type="button" class="btn-back" onclick="fecharModalEditarContrato()">Cancelar</button>
+                <button type="submit" class="btn-primary">Salvar Edição</button>
+            </div>
+        </form>
+    </div>
+</div>

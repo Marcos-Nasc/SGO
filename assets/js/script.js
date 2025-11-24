@@ -46,7 +46,6 @@ document.addEventListener('DOMContentLoaded', function() {
     submenuLinks.forEach(link => {
         link.addEventListener('click', function(event) {
             // Previne a navegação se for só para abrir o menu
-            // (idealmente, o link '#' não navegaria, mas garantimos)
             event.preventDefault(); 
             
             const parentLi = this.parentElement;

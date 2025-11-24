@@ -24,13 +24,11 @@ async function abrirModalFotos(agendamentoId, os, mantenedorNome, dataAgendada, 
     document.getElementById('modal-resumo-cliente').innerText = "Cliente: " + mantenedorNome;
     document.getElementById('modal-resumo-data').innerText = "Data Agendada: " + dataAgendada;
     
-    // --- ESTA É A CORREÇÃO ---
     // Reseta o botão de concluir, APENAS SE ELE EXISTIR nesta página
     if (btnMarcarConcluido) {
         btnMarcarConcluido.disabled = false;
         btnMarcarConcluido.innerHTML = '<i class="bi bi-check-all"></i> Marcar Serviço como Concluído';
     }
-    // --- FIM DA CORREÇÃO ---
 
     isUploading = false;
 
@@ -59,8 +57,10 @@ async function abrirModalFotos(agendamentoId, os, mantenedorNome, dataAgendada, 
             }
         }
     } catch (err) {
+        // Erro ao buscar dados (por exemplo, 404)
         gridFotosAntes.innerHTML = '<span class="loading-fotos" style="color:red;">Erro ao buscar fotos.</span>';
         gridFotosDepois.innerHTML = '<span class="loading-fotos" style="color:red;">Erro ao buscar fotos.</span>';
+        showNotification('erro', 'Falha na comunicação inicial com o servidor.', 5000);
     }
 }
 
@@ -95,14 +95,11 @@ async function handleFotoUpload(input, tipo) {
     isUploading = true;
     const file = input.files[0];
     const agendamentoId = hiddenAgendamentoId.value;
-    const grid = (tipo === 'antes') ? gridFotosAntes : gridFotosDepois;
     
-    // --- CORREÇÃO AQUI ---
-    // Guardamos a referência do elemento PAI (a Label) numa variável
     const labelBotao = input.parentElement; 
     const conteudoOriginal = labelBotao.innerHTML;
     
-    // Feedback de Upload (Usa a variável labelBotao, não input.parentElement)
+    // Feedback de Upload (Usa a referência da Label)
     labelBotao.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Enviando...';
 
     const formData = new FormData();
@@ -120,77 +117,104 @@ async function handleFotoUpload(input, tipo) {
 
         if (data.status === 'sucesso') {
             
-            // --- MUDANÇA AQUI ---
-            // 1. Seleciona a grid correta
+            // 1. Limpa o conteúdo atual (modo substituição)
             const gridAlvo = (tipo === 'antes') ? gridFotosAntes : gridFotosDepois;
-            
-            // 2. Limpa o conteúdo atual (remove a foto antiga visualmente)
             gridAlvo.innerHTML = ''; 
             
-            // 3. Adiciona a nova foto
+            // 2. Adiciona a nova foto e notifica sucesso
             adicionarPreview(data, tipo);
-            // --------------------
+            // Alterado para 'sucesso' para garantir a cor verde
+            showNotification('sucesso', 'Foto anexada e salva!', 2500); 
             
         } else {
-            alert('Erro no upload: ' + data.msg);
+            // Notifica o erro do PHP
+            showNotification('erro', 'Falha no upload: ' + data.msg, 4000);
         }
     } catch (err) {
         console.error(err);
-        alert('Erro de comunicação ao enviar foto.');
+        showNotification('erro', 'Erro de comunicação ao enviar foto.', 4000); 
     }
 
-    // Restaura o botão de upload usando a referência segura
+    // Restaura o botão de upload
     isUploading = false;
     if (labelBotao) {
-        labelBotao.innerHTML = conteudoOriginal;
-        // Não precisamos limpar o input.value porque o input foi recriado ao restaurar o HTML
+        // Usamos um pequeno timeout para garantir que o JS termine o processamento visual
+        setTimeout(() => {
+            labelBotao.innerHTML = conteudoOriginal;
+        }, 100); 
     }
 }
 
 /**
  * Marca o serviço como 'Concluído - Aguardando Validação'
+ * AVISO: Usa o modal global de confirmação
  */
-async function marcarServicoConcluido() {
+function marcarServicoConcluido() {
+    // 1. Verifica se há upload em andamento
     if (isUploading) {
-        alert("Por favor, aguarde o término do upload das fotos.");
+        showNotification('warning', "Por favor, aguarde o término do upload das fotos.", 4000);
         return;
     }
     
     const agendamentoId = hiddenAgendamentoId.value;
-    if (!confirm(`Tem certeza que deseja marcar a OS deste agendamento (ID: ${agendamentoId}) como concluída?`)) {
-        return;
-    }
 
-    btnMarcarConcluido.disabled = true;
-    btnMarcarConcluido.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Salvando...';
-
-    const formData = new FormData();
-    formData.append('acao', 'marcar_concluido');
-    formData.append('agendamento_id', agendamentoId);
-
-    try {
-        const response = await fetch('pages/agendamentos/actions.php', {
-            method: 'POST',
-            body: formData
-        });
-        const data = await response.json();
-
-        if (data.status === 'sucesso') {
-            alert(data.msg);
-            // Remove a linha da tabela na página principal
-            const row = document.getElementById(`agendamento-row-${agendamentoId}`);
-            if (row) {
-                row.remove();
+    // 2. Abre o modal de confirmação personalizado
+    abrirGlobalConfirm(
+        `Tem certeza que deseja marcar a OS deste agendamento (ID: ${agendamentoId}) como concluída?`,
+        'Sim, Concluir',
+        async () => {
+            // --- LÓGICA DE EXECUÇÃO (Callback) ---
+            
+            if(btnMarcarConcluido) {
+                btnMarcarConcluido.disabled = true;
+                btnMarcarConcluido.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Salvando...';
             }
-            fecharModalFotos();
-        } else {
-            alert('Erro: ' + data.msg);
-        }
-    } catch (err) {
-        alert('Erro de comunicação.');
-    }
 
-    // Reabilita o botão em caso de falha
+            const formData = new FormData();
+            formData.append('acao', 'marcar_concluido');
+            formData.append('agendamento_id', agendamentoId);
+
+            try {
+                const response = await fetch('pages/agendamentos/actions.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.status === 'sucesso') {
+                    // Usa data.status ou força 'sucesso'
+                    showNotification('sucesso', data.msg, 2500); 
+                    
+                    // Remove a linha da tabela na página principal
+                    const row = document.getElementById(`agendamento-row-${agendamentoId}`);
+                    if (row) {
+                        row.remove();
+                    }
+                    
+                    // Recarrega a página após 2 segundos (2000ms)
+                    setTimeout(() => { 
+                        fecharModalFotos(); 
+                        location.reload(); 
+                    }, 2000);
+                    
+                } else {
+                    showNotification('erro', 'Falha ao concluir: ' + data.msg, 4000); 
+                    // Reabilita o botão em caso de erro do PHP
+                    restaurarBotaoConcluir();
+                }
+            } catch (err) {
+                showNotification('erro', 'Erro de comunicação ao salvar o status.', 4000);
+                restaurarBotaoConcluir();
+            }
+        },
+        'Concluir Serviço' // Título do Modal
+    );
+}
+
+/**
+ * Função auxiliar para restaurar o botão em caso de erro
+ */
+function restaurarBotaoConcluir() {
     if (btnMarcarConcluido) {
         btnMarcarConcluido.disabled = false;
         btnMarcarConcluido.innerHTML = '<i class="bi bi-check-all"></i> Marcar Serviço como Concluído';

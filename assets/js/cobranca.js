@@ -1,67 +1,33 @@
-// --- Funções do Modal de Detalhes ---
+// assets/js/cobranca.js
+
+// --- 1. VARIÁVEIS DE CONTROLE E MODAIS DE DETALHES ---
+// Mantemos apenas as referências ao modal de detalhes (modalCobranca)
 const modalCobranca = document.getElementById('modalCobranca');
 const btnAprovarModal = document.getElementById('btnAprovarModal');
 
-function abrirModalDetalhes(botao) {
-    // Pega todos os dados dos atributos data-*
-    const os = botao.getAttribute('data-os');
-    const nf = botao.getAttribute('data-nf') || 'N/A';
-    const previsao = botao.getAttribute('data-previsao');
-    const isHoje = botao.getAttribute('data-is-hoje') === '1';
+// As variáveis modalConfirmacaoAprovacao e btnConfirmarAprovacaoFinal foram removidas
+// pois serão gerenciadas pelo script global.
 
-    // Armazena o ID no botão "Aprovar" do modal
-    const vendaId = botao.getAttribute('data-venda-id');
-    btnAprovarModal.setAttribute('onclick', `aprovarDoModal(this, ${vendaId})`);
+// ... (Restante das funções abrirModalDetalhes e fecharModalDetalhes) ...
 
-    // Cartão 1: Cliente
-    document.getElementById('modalTituloOS').innerText = "Detalhes da Venda - OS " + os;
-    document.getElementById('modalMantenedor').innerText = botao.getAttribute('data-mantenedor');
-    document.getElementById('modalTelefone').innerText = botao.getAttribute('data-telefone');
-    document.getElementById('modalEmail').innerText = botao.getAttribute('data-email');
-    document.getElementById('modalContrato').innerText = botao.getAttribute('data-contrato');
 
-    // Cartão 2: Serviço e Datas
-    document.getElementById('modalServico').innerText = botao.getAttribute('data-servico');
-    document.getElementById('modalOsNf').innerText = `OS: ${os} / NF: ${nf}`;
-    document.getElementById('modalDataVenda').innerText = botao.getAttribute('data-data-venda');
-    document.getElementById('modalDataPrevisao').innerText = previsao;
+// --- 2. FUNÇÃO DE APROVAR VENDA (GENÉRICA) ---
+// Função de execução que será passada ao modal global
+function aprovarCobranca(vendaId) {
     
-    // Destaque visual para data de hoje/vencido no modal
-    const itemPrevisao = document.getElementById('itemDataPrevisao');
-    if (isHoje) {
-        itemPrevisao.classList.add('vencimento-hoje');
-    } else {
-        itemPrevisao.classList.remove('vencimento-hoje');
-    }
-
-    // Cartão 3: Financeiro
-    document.getElementById('modalValorFinal').innerText = botao.getAttribute('data-valor-final');
-    document.getElementById('modalCondicao').innerText = botao.getAttribute('data-condicao');
-    document.getElementById('modalValorEntrada').innerText = botao.getAttribute('data-valor-entrada');
-    document.getElementById('modalFamilia').innerText = botao.getAttribute('data-familia');
-    document.getElementById('modalParcelas').innerText = botao.getAttribute('data-parcelas') + 'x';
-    document.getElementById('modalValorParcela').innerText = botao.getAttribute('data-valor-parcela');
+    // 1. Identifica o botão original da tabela para feedback visual (pode ser o btn-approve ou o btn-details)
+    const botaoOriginal = document.querySelector(`button.btn-approve[data-venda-id="${vendaId}"]`);
     
-    // Abre o modal
-    modalCobranca.classList.add('active');
-}
-
-function fecharModalDetalhes() {
-    modalCobranca.classList.remove('active');
-    // Garante que o botão do modal seja reativado ao fechar
-    btnAprovarModal.disabled = false;
-    btnAprovarModal.innerHTML = '<i class="bi bi-check-circle-fill"></i> Aprovar Venda';
-}
-
-// --- Função de Aprovar Venda (Genérica) ---
-function aprovarCobranca(botao, vendaId) {
-    if (!confirm('Tem certeza que deseja aprovar esta cobrança? A venda seguirá para o agendamento.')) {
-        return;
+    // Se o modal de detalhes estava ativo, feche-o (pode ser necessário se o usuário aprovar direto do modal de detalhes)
+    if (modalCobranca && modalCobranca.classList.contains('active')) {
+        fecharModalDetalhes();
     }
-
-    // Desabilita o botão e mostra feedback
-    botao.disabled = true;
-    botao.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Aprovando...';
+    
+    // 2. Desabilita o botão original e mostra feedback (caso exista)
+    if (botaoOriginal) {
+        botaoOriginal.disabled = true;
+        botaoOriginal.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Aprovando...';
+    }
 
     const formData = new FormData();
     formData.append('acao', 'aprovar_cobranca');
@@ -73,46 +39,91 @@ function aprovarCobranca(botao, vendaId) {
     })
     .then(response => response.json())
     .then(data => {
+        
         if (data.status === 'sucesso') {
+            // CORREÇÃO: Tempo de notificação para 2000ms
+            showNotification(data.status, data.msg, 2000); 
+            
             // Sucesso: Remove a linha da tabela com uma animação
-            const tr = botao.closest('tr');
-            if (tr) { // Se o botão estava na tabela
+            const tr = botaoOriginal ? botaoOriginal.closest('tr') : document.querySelector(`#tabelaCobrancas tr[data-venda-id="${vendaId}"]`);
+            
+            if (tr) { 
                 tr.style.transition = 'opacity 0.5s ease';
                 tr.style.opacity = '0';
+                
+                // CORREÇÃO: Ajuste do delay para 500ms antes de iniciar o reload/remoção
                 setTimeout(() => {
                     tr.remove();
-                }, 500);
+                    // Recarrega se não houver mais linhas (para mostrar "tabela vazia")
+                    if(document.querySelectorAll('#tabelaCobrancas tbody tr').length <= 0) {
+                        location.reload(); 
+                    }
+                }, 2000); 
             }
-            return true;
         } else {
             // Erro: Reabilita o botão
-            alert('Erro: ' + data.msg);
-            botao.disabled = false;
-            botao.innerHTML = '<i class="bi bi-check-circle-fill"></i> Aprovar';
-            return false;
+            showNotification(data.status, 'Falha na Aprovação: ' + data.msg, 4000); 
+            
+            if (botaoOriginal) {
+                botaoOriginal.disabled = false;
+                botaoOriginal.innerHTML = '<i class="bi bi-check-circle-fill"></i> Aprovar';
+            }
         }
     })
     .catch(err => {
-        alert('Erro de comunicação. Tente novamente.');
-        botao.disabled = false;
-        botao.innerHTML = '<i class="bi bi-check-circle-fill"></i> Aprovar';
-        return false;
+        showNotification('erro', 'Erro de comunicação. O servidor não respondeu.', 4000); 
+        
+        if (botaoOriginal) {
+            botaoOriginal.disabled = false;
+            botaoOriginal.innerHTML = '<i class="bi bi-check-circle-fill"></i> Aprovar';
+        }
     });
 }
 
-// --- Função Específica para o Botão do Modal ---
-async function aprovarDoModal(botao, vendaId) {
-    // Chama a função genérica e espera a resposta (true/false)
-    const sucesso = await aprovarCobranca(botao, vendaId);
+
+// --- 3. FUNÇÃO DE FLUXO (ABERTURA DO MODAL GLOBAL) ---
+
+// Chamada pelo botão "Aprovar Venda" dentro do Modal de Detalhes
+function aprovarDoModal(botao) {
+    // Pega os dados do botão de detalhes
+    const vendaId = botao.getAttribute('data-venda-id');
+    const os = document.getElementById('modalTituloOS').innerText.replace('Detalhes da Venda - OS ', '');
+
+    // 1. Fecha o modal de detalhes
+    fecharModalDetalhes(); 
     
-    if (sucesso) {
-        fecharModalDetalhes();
-        // A linha da tabela já foi removida pela 'aprovarCobranca'
-        // Mas precisamos encontrar o botão na tabela e removê-lo se o modal fechar
-        // (A forma mais fácil é recarregar a página, ou deixar a 'aprovarCobranca' cuidar disso)
-        
-        // Vamos apenas recarregar a tabela para garantir
-        location.reload(); 
-    }
-    // Se falhar, a 'aprovarCobranca' já reabilitou o botão
+    // 2. Abre o modal de confirmação global
+    abrirConfirmacaoAprovacao(vendaId, os);
 }
+
+// Chamada pelo botão "Aprovar" direto da Tabela (onclick)
+function abrirConfirmacaoAprovacao(vendaId, os) {
+    
+    const mensagem = `Você tem certeza que deseja aprovar a cobrança da OS <strong>${os}</strong>?`;
+    const acaoLabel = "Sim, Aprovar Cobrança";
+    const titulo = `Aprovar Cobrança OS ${os}`;
+    
+    // Chamamos a função global com o callback
+    // O callback é a função aprovarCobranca(vendaId)
+    abrirGlobalConfirm(
+        mensagem,
+        acaoLabel,
+        () => aprovarCobranca(vendaId), // Função a ser executada na confirmação
+        titulo
+    );
+}
+
+// --- 4. ADICIONANDO LISTENERS ---
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Altera a função de clique dos botões de detalhes/aprovar na tabela
+    // O botão de detalhes chama abrirModalDetalhes, que por sua vez chama aprovarDoModal.
+    
+    // 2. Garante que os botões de Aprovar da Tabela chamem a função correta
+    document.querySelectorAll('.widget-table .btn-approve').forEach(btn => {
+        const vendaId = btn.getAttribute('data-venda-id');
+        const os = btn.getAttribute('data-os');
+        
+        // Se o botão da tabela for clicado, ele abre diretamente o modal global.
+        btn.setAttribute('onclick', `abrirConfirmacaoAprovacao(${vendaId}, '${os}')`);
+    });
+});

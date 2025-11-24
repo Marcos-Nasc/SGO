@@ -26,7 +26,7 @@ $nivel_usuario = $_SESSION['usuario_nivel'] ?? 'Vendedor';
                     <a href="#"><i class="bi bi-briefcase-fill"></i> Gerenciamento <i class="bi bi-chevron-down arrow"></i></a>
                     <ul class="submenu">
                         <li><a href="index.php?page=mantenedores&action=view"><i class="bi bi-person-vcard-fill"></i> Mantenedores</a></li>
-                        <li><a href="index.php?page=produtos_servicos&action=view"><i class="bi bi-shield-check"></i> Serviços</a></li>
+                        <li class="nav-item"> <a href="index.php?page=processos&action=view"> <i class="bi bi-diagram-3-fill"></i> Gestão de Processos </a> </li>
                     </ul>
                 </li>
 
